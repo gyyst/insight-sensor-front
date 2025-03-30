@@ -58,7 +58,67 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: {
           title: "首页",
           svgIcon: "dashboard",
-          affix: true
+          affix: true,
+          hidden: true
+        }
+      }
+    ]
+  },
+  {
+    path: "/sensor",
+    component: Layout,
+    redirect: "/sensor/laser",
+    name: "Sensor",
+    meta: {
+      title: "传感器管理",
+      elIcon: "Monitor",
+      alwaysShow: true
+    },
+    children: [
+      {
+        path: "laser",
+        component: () => import("@/views/sensor/laser/index.vue"),
+        name: "LaserSensor",
+        meta: {
+          title: "激光传感器管理"
+        }
+      },
+      {
+        path: "vision",
+        component: () => import("@/views/sensor/vision/index.vue"),
+        name: "VisionSensor",
+        meta: {
+          title: "视觉传感器管理"
+        }
+      }
+    ]
+  },
+  {
+    path: "/manufacturer",
+    component: Layout,
+    children: [
+      {
+        path: "index",
+        component: () => import("@/views/manufacturer/index.vue"),
+        name: "Manufacturer",
+        meta: {
+          title: "厂商管理",
+          elIcon: "OfficeBuilding"
+        }
+      }
+    ]
+  },
+  {
+    path: "/recommendation",
+    component: Layout,
+    children: [
+      {
+        path: "index",
+        component: () => import("@/views/recommendation/index.vue"),
+        name: "Recommendation",
+        meta: {
+          title: "推荐系统",
+          elIcon: "Star"
         }
       }
     ]

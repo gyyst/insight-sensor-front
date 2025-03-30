@@ -11,10 +11,23 @@ export function getLoginCodeApi() {
   // })
 }
 
+/** 
+ * sendRegisterEmail
+ * @param {object} params UserRegisterEmailSendRequest
+ * @param {string} params.email 
+ * @returns
+ */
+export function sendRegisterEmail(data: Login.SendRegisterEmailParams) {
+  return request({
+    url: "/user/common/register/email/send",
+    method: "post",
+    data
+  })
+}
 /** 注册 */
 export function registerAPI(data: Login.RegisterRequestData) {
   return request({
-    url: "user/common/register",
+    url: "user/common/register/email",
     method: "post",
     data
   })

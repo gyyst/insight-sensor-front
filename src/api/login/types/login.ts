@@ -4,12 +4,38 @@ export interface LoginRequestData {
   password?: string
   code?: string
 }
-export interface RegisterRequestData {
-  userAccount?: string
-  userPassword?: string
-  checkPassword?: string
+// 参数接口
+export interface SendRegisterEmailParams {
+  /* */
+  email: string;
 }
 
+// 参数接口
+export interface RegisterRequestData {
+  /* */
+  account: string;
+
+  /* */
+  email: string;
+
+  /* */
+  password: string;
+
+  /* */
+  validCode: number;
+
+  /* */
+  name: string;
+
+  /* */
+  userAvatar?: string;
+
+  /* */
+  userProfile?: string;
+
+  /* */
+  roles: string[];
+}
 export interface UserLoginRes {
   createTime: Record<string, unknown>
   id: number

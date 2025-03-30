@@ -1,209 +1,278 @@
 <template>
-  <div class="app-container">
-    <el-card class="box-card">
-      <template #header>
-        <div class="card-header">
-          <span>厂商管理</span>
-          <el-button type="primary" @click="handleAddManufacturer">添加厂商</el-button>
-        </div>
-      </template>
-      <div class="card-content">
-        <el-table :data="tableData" style="width: 100%" v-loading="loading">
-          <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="name" label="厂商名称" width="180" />
-          <el-table-column prop="country" label="国家/地区" width="120" />
-          <el-table-column prop="contact" label="联系人" width="120" />
-          <el-table-column prop="phone" label="联系电话" width="150" />
-          <el-table-column prop="email" label="电子邮箱" width="180" />
-          <el-table-column prop="address" label="地址" />
-          <el-table-column label="操作" width="180">
-            <template #default="scope">
-              <el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+    <div class="app-container">
+        <el-card class="box-card">
+            <template #header>
+                <div class="card-header">
+                    <span>厂商管理</span>
+                    <el-button v-if="checkPermission(['admin'])" type="primary" @click="handleAddBrand">添加厂商</el-button>
+                </div>
             </template>
-          </el-table-column>
-        </el-table>
-        <div class="pagination-container">
-          <el-pagination
-            v-model:current-page="currentPage"
-            v-model:page-size="pageSize"
-            :page-sizes="[10, 20, 30, 50]"
-            layout="total, sizes, prev, pager, next, jumper"
-            :total="total"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          />
-        </div>
-      </div>
-    </el-card>
+            <div class="card-content">
+                <el-table :data="tableData" style="width: 100%" v-loading="loading">
+                    <el-table-column prop="id" label="ID" />
+                    <el-table-column prop="brandName" label="厂商名称" />
+                    <el-table-column prop="description" label="描述" />
+                    <el-table-column prop="country" label="所属国家" />
+                    <el-table-column prop="website" label="官网">
+                        <template #default="scope">
+                            <a v-if="scope.row.website" :href="scope.row.website" target="_blank">{{ scope.row.website
+                                }}</a>
+                            <span v-else>-</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="140">
+                        <template #default="scope">
+                            <el-button v-if="checkPermission(['admin'])" size="small"
+                                @click="handleEdit(scope.row)">编辑</el-button>
+                            <el-button v-if="checkPermission(['admin'])" size="small" type="danger"
+                                @click="handleDelete(scope.row)">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+                <div class="pagination-container">
+                    <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+                        :page-sizes="[10, 20, 30, 50]" layout="total, sizes, prev, pager, next, jumper" :total="total"
+                        @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+                </div>
 
-    <!-- 添加/编辑厂商对话框 -->
-    <el-dialog
-      :title="dialogType === 'add' ? '添加厂商' : '编辑厂商'"
-      v-model="dialogVisible"
-      width="500px"
-    >
-      <el-form :model="manufacturerForm" label-width="100px" :rules="rules" ref="formRef">
-        <el-form-item label="厂商名称" prop="name">
-          <el-input v-model="manufacturerForm.name" placeholder="请输入厂商名称" />
-        </el-form-item>
-        <el-form-item label="国家/地区" prop="country">
-          <el-input v-model="manufacturerForm.country" placeholder="请输入国家/地区" />
-        </el-form-item>
-        <el-form-item label="联系人" prop="contact">
-          <el-input v-model="manufacturerForm.contact" placeholder="请输入联系人姓名" />
-        </el-form-item>
-        <el-form-item label="联系电话" prop="phone">
-          <el-input v-model="manufacturerForm.phone" placeholder="请输入联系电话" />
-        </el-form-item>
-        <el-form-item label="电子邮箱" prop="email">
-          <el-input v-model="manufacturerForm.email" placeholder="请输入电子邮箱" />
-        </el-form-item>
-        <el-form-item label="地址" prop="address">
-          <el-input v-model="manufacturerForm.address" placeholder="请输入地址" type="textarea" :rows="2" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitForm">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
+                <!-- 添加/编辑对话框 -->
+                <el-dialog v-model="dialogVisible" :title="dialogTitle" width="50%">
+                    <el-form :model="formData" label-width="120px">
+                        <el-form-item label="厂商名称" required>
+                            <el-input v-model="formData.brandName" />
+                        </el-form-item>
+                        <el-form-item label="描述">
+                            <el-input v-model="formData.description" type="textarea" :rows="3" />
+                        </el-form-item>
+                        <el-form-item label="所属国家">
+                            <el-input v-model="formData.country" />
+                        </el-form-item>
+                        <el-form-item label="官网">
+                            <el-input v-model="formData.website" placeholder="如 https://www.example.com" />
+                        </el-form-item>
+                    </el-form>
+                    <template #footer>
+                        <span class="dialog-footer">
+                            <el-button @click="dialogVisible = false">取消</el-button>
+                            <el-button type="primary" @click="submitForm">确定</el-button>
+                        </span>
+                    </template>
+                </el-dialog>
+            </div>
+        </el-card>
+    </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue"
 import { ElMessage, ElMessageBox } from "element-plus"
-import type { FormInstance, FormRules } from "element-plus"
+import { pageBrandApi, removeBrandApi, getInfoBrandApi, saveBrandApi, updateBrandApi } from "@/api/sensor"
+import type { PageBrandRes, GetInfoBrandRes } from "@/api/sensor/types/SensorBrand"
+import { checkPermission } from "@/utils/permission" // 引入权限检查函数
 
-interface Manufacturer {
-  id: number
-  name: string
-  country: string
-  contact: string
-  phone: string
-  email: string
-  address: string
+interface BrandForm {
+    id?: number
+    brandName: string
+    description?: string
+    country?: string
+    website?: string
 }
 
-const tableData = ref<Manufacturer[]>([
-  {
-    id: 1,
-    name: "SICK",
-    country: "德国",
-    contact: "Hans Schmidt",
-    phone: "+49 123456789",
-    email: "contact@sick.com",
-    address: "Erwin-Sick-Str. 1, 79183 Waldkirch, Germany"
-  },
-  {
-    id: 2,
-    name: "Velodyne",
-    country: "美国",
-    contact: "John Smith",
-    phone: "+1 408-465-2800",
-    email: "info@velodyne.com",
-    address: "5521 Hellyer Ave, San Jose, CA 95138, USA"
-  },
-  {
-    id: 3,
-    name: "Basler",
-    country: "德国",
-    contact: "Maria Müller",
-    phone: "+49 4102 463 500",
-    email: "sales@baslerweb.com",
-    address: "An der Strusbek 60-62, 22926 Ahrensburg, Germany"
-  }
-])
-
+const tableData = ref<PageBrandRes["data"]["records"]>([])
 const loading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
-const total = ref(3)
+const total = ref(0)
+
+// 对话框相关
 const dialogVisible = ref(false)
-const dialogType = ref<'add' | 'edit'>('add')
-const formRef = ref<FormInstance>()
-
-const manufacturerForm = reactive<Omit<Manufacturer, 'id'>>({ 
-  name: '',
-  country: '',
-  contact: '',
-  phone: '',
-  email: '',
-  address: ''
+const dialogTitle = ref("添加厂商")
+const formData = reactive<BrandForm>({
+    brandName: "",
+    description: "",
+    country: "",
+    website: ""
 })
 
-const rules = reactive<FormRules>({
-  name: [{ required: true, message: '请输入厂商名称', trigger: 'blur' }],
-  country: [{ required: true, message: '请输入国家/地区', trigger: 'blur' }],
-  contact: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
-  email: [{ required: true, message: '请输入电子邮箱', trigger: 'blur' }, { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }]
-})
-
-const resetForm = () => {
-  manufacturerForm.name = ''
-  manufacturerForm.country = ''
-  manufacturerForm.contact = ''
-  manufacturerForm.phone = ''
-  manufacturerForm.email = ''
-  manufacturerForm.address = ''
-}
-
-const handleAddManufacturer = () => {
-  dialogType.value = 'add'
-  resetForm()
-  dialogVisible.value = true
-}
-
-const handleEdit = (row: Manufacturer) => {
-  dialogType.value = 'edit'
-  Object.keys(manufacturerForm).forEach(key => {
-    manufacturerForm[key as keyof typeof manufacturerForm] = row[key as keyof Manufacturer]
-  })
-  dialogVisible.value = true
-}
-
-const handleDelete = (row: Manufacturer) => {
-  ElMessageBox.confirm(`确定要删除厂商 ${row.name} 吗?`, "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning"
-  })
-    .then(() => {
-      ElMessage.success(`删除成功: ${row.name}`)
+// 获取厂商列表
+const fetchBrandList = () => {
+    loading.value = true
+    pageBrandApi({
+        current: currentPage.value,
+        pageSize: pageSize.value
     })
-    .catch(() => {
-      ElMessage.info("已取消删除")
-    })
+        .then(res => {
+            if (res.code === 0) {
+                tableData.value = res.data.records
+                total.value = res.data.totalRow
+            } else {
+                ElMessage.error(res.message || "获取数据失败")
+            }
+        })
+        .catch(error => {
+            console.error("获取厂商列表失败:", error)
+            ElMessage.error("获取数据失败，请稍后重试")
+        })
+        .finally(() => {
+            loading.value = false
+        })
 }
 
-const submitForm = async () => {
-  if (!formRef.value) return
-  
-  await formRef.value.validate((valid, fields) => {
-    if (valid) {
-      if (dialogType.value === 'add') {
-        ElMessage.success('添加厂商成功')
-      } else {
-        ElMessage.success('编辑厂商成功')
-      }
-      dialogVisible.value = false
+// 添加厂商
+const handleAddBrand = () => {
+    dialogTitle.value = "添加厂商"
+    // 重置表单
+    Object.assign(formData, {
+        id: undefined,
+        brandName: "",
+        description: "",
+        country: "",
+        website: ""
+    })
+    dialogVisible.value = true
+}
+
+// 编辑厂商
+const handleEdit = (row: PageBrandRes["data"]["records"][0]) => {
+    dialogTitle.value = "编辑厂商"
+    getInfoBrandApi(row.id)
+        .then(res => {
+            if (res.code === 0) {
+                // 填充表单数据
+                Object.assign(formData, {
+                    id: res.data.id,
+                    brandName: res.data.brandName,
+                    description: res.data.description,
+                    country: res.data.country,
+                    website: res.data.website
+                })
+                dialogVisible.value = true
+            } else {
+                ElMessage.error(res.message || "获取厂商详情失败")
+            }
+        })
+        .catch(error => {
+            console.error("获取厂商详情失败:", error)
+            ElMessage.error("获取厂商详情失败，请稍后重试")
+        })
+}
+
+// 删除厂商
+const handleDelete = (row: PageBrandRes["data"]["records"][0]) => {
+    ElMessageBox.confirm(`确定要删除厂商 ${row.brandName} 吗?`, "警告", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+    })
+        .then(() => {
+            removeBrandApi(row.id)
+                .then(res => {
+                    if (res.code === 0 && res.data) {
+                        ElMessage.success("删除成功")
+                        // 重新获取列表数据
+                        fetchBrandList()
+                    } else {
+                        ElMessage.error(res.message || "删除失败")
+                    }
+                })
+                .catch(error => {
+                    console.error("删除厂商失败:", error)
+                    ElMessage.error("删除失败，请稍后重试")
+                })
+        })
+        .catch(() => {
+            ElMessage.info("已取消删除")
+        })
+}
+
+// 提交表单
+const submitForm = () => {
+    if (!formData.brandName) {
+        ElMessage.warning("请输入厂商名称")
+        return
     }
-  })
+
+    if (formData.id) {
+        // 更新
+        updateBrandApi({
+            id: formData.id,
+            brandName: formData.brandName,
+            description: formData.description,
+            country: formData.country,
+            website: formData.website
+        })
+            .then(res => {
+                if (res.code === 0 && res.data) {
+                    ElMessage.success("更新成功")
+                    dialogVisible.value = false
+                    fetchBrandList()
+                } else {
+                    ElMessage.error(res.message || "更新失败")
+                }
+            })
+            .catch(error => {
+                console.error("提交表单失败:", error)
+                ElMessage.error("操作失败，请稍后重试")
+            })
+    } else {
+        // 新增
+        saveBrandApi({
+            brandName: formData.brandName,
+            description: formData.description,
+            country: formData.country,
+            website: formData.website
+        })
+            .then(res => {
+                if (res.code === 0 && res.data) {
+                    ElMessage.success("添加成功")
+                    dialogVisible.value = false
+                    fetchBrandList()
+                } else {
+                    ElMessage.error(res.message || "添加失败")
+                }
+            })
+            .catch(error => {
+                console.error("提交表单失败:", error)
+                ElMessage.error("操作失败，请稍后重试")
+            })
+    }
 }
 
 const handleSizeChange = (val: number) => {
-  pageSize.value = val
-  // 这里可以添加获取数据的逻辑
+    pageSize.value = val
+    fetchBrandList()
 }
 
 const handleCurrentChange = (val: number) => {
-  currentPage.value = val
-  // 这里可以添加获取数据的逻辑
+    currentPage.value = val
+    fetchBrandList()
 }
 
-onMounted(() => {})
-  // 这里可以添加获取数据的逻
+onMounted(() => {
+    fetchBrandList()
+})
+</script>
+
+<style lang="scss" scoped>
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.el-form-item {
+    margin-bottom: 20px;
+}
+</style>

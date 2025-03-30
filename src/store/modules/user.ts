@@ -32,8 +32,8 @@ export const useUserStore = defineStore(
       setToken(userInfo.value.tokenInfo.tokenValue)
       token.value = data.tokenInfo.tokenValue
     }
-    const register = async ({ userAccount, userPassword, checkPassword }: RegisterRequestData) => {
-      return await registerAPI({ userAccount, userPassword, checkPassword })
+    const register = async (data: RegisterRequestData) => {
+      return await registerAPI(data)
     }
     /** 获取用户详情 */
     const getInfo = async () => {

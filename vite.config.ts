@@ -54,7 +54,7 @@ export default (configEnv: ConfigEnv): UserConfigExport => {
           rewrite: (path) => path.replace("/dev", "")
         },
         "/pro": {
-          target: "http://xyzzz.dedyn.io:5000",
+          target: "http://insight.proxyz.dedyn.io:5000",
           // target: "http://localhost:5000",
           ws: true,
           /** 是否允许跨域 */
